@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Futurevest</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="CSS.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+<style>
+body,h1,h2,h3,h4,h5 {font-family: "Poppins", sans-serif}
+body {font-size:16px;}
+.w3-half img{margin-bottom:-6px;margin-top:16px;opacity:0.8;cursor:pointer}
+.w3-half img:hover{opacity:1}
+</style>
+
+<head>
+
+  <script type="text/javascript">
+window.onload = function () {
+  var dps1 = [], dps2= [];
+  var stockChart = new CanvasJS.StockChart("sherwinContainer",{
+    title:{
+      text:"Sherwin Williams"
+    },
+    subtitles: [{
+      text:"Simple Moving Average"
+    }],
+    charts: [{
+      axisY: {
+        prefix: "$"
+      },
+      legend: {
+        verticalAlign: "top",
+        cursor: "pointer",
+        itemclick: function (e) {
+          if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+            e.dataSeries.visible = false;
+          } else {
+            e.dataSeries.visible = true;
+          }
+          e.chart.render();
+        }
+      },
+      toolTip: {
+        shared: true
+      },
+      data: [{
+        type: "candlestick",
+        showInLegend: true,
+        name: "Stock Price",
+        yValueFormatString: "$#,###.00",
+        xValueType: "dateTime",
+        dataPoints : dps1
+      }],
+    }],
+    navigator: {
+       data: [{
+         dataPoints: dps2
+       }],
+      slider: {
+        minimum: new Date(2018, 03, 01),
+        maximum: new Date(2018, 05, 01)
+      }
+    }
+  });
+  $.getJSON("Sherwin.json", function(data) {
+    for(var i = 0; i < data.length; i++){
+      dps1.push({x: new Date(data[i].date), y: [Number(data[i].open), Number(data[i].high), Number(data[i].low), Number(data[i].close)]});
+      dps2.push({x: new Date(data[i].date), y: Number(data[i].close)});
+    }
+    stockChart.render();
+    var sma = calculateSMA(dps1, 7);
+    stockChart.charts[0].addTo("data", { type: "line", dataPoints: sma, showInLegend: true, yValueFormatString: "$#,###.00", name: "Simple Moving Average"})
+  });
+  function calculateSMA(dps, count){
+    var avg = function(dps){
+      var sum = 0, count = 0, val;
+      for (var i = 0; i < dps.length; i++) {
+        val = dps[i].y[3]; sum += val; count++;
+      }
+      return sum / count;
+    };
+    var result = [], val;
+    count = count || 5;
+    for (var i=0; i < count; i++)
+      result.push({ x: dps[i].x , y: null});
+    for (var i=count - 1, len=dps.length; i < len; i++){
+      val = avg(dps.slice(i - count + 1, i));
+      if (isNaN(val))
+        result.push({ x: dps[i].x, y: null});
+      else
+        result.push({ x: dps[i].x, y: val});
+    }
+    return result;
+  }
+}
+</script>
+</head>
+
+<body>
+
+<!-- Sidebar/menu -->
+<nav class="w3-sidebar w3-deep-purple w3-collapse w3-top w3-large w3-padding" style="z-index:3;width:300px;font-weight:bold;" id="mySidebar"><br>
+  <a href="javascript:void(0)" onclick="w3_close()" class="w3-button w3-hide-large w3-display-topleft" style="width:100%;font-size:22px">Close Menu</a>
+  <div class="w3-container">
+    <h3 class="w3-padding-64"><b>Futurevest</h3>
+  </div>
+  <div class="w3-bar-block">
+      <a href="#" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Home</a>
+      <a href="#stockDisplay" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Stocks Predictions</a>
+      <a href="#stocksSupported" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Stocks Supported</a>
+      <a href="#aboutUs" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">About Us </a>
+      <a href="#contactUs" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Contact Us</a>
+  </div>
+</nav>
+
+<!-- Top menu on small screens -->
+<header class="w3-container w3-top w3-hide-large w3-deep-purple w3-xlarge w3-padding">
+  <a href="javascript:void(0)" class="w3-button w3-deep-purple w3-margin-right" onclick="w3_open()">☰</a>
+  <span>Futurevest</span>
+</header>
+
+<!-- Overlay effect when opening sidebar on small screens -->
+<div class="w3-overlay w3-hide-large" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
+
+<!-- !PAGE CONTENT! -->
+<div class="w3-main" style="margin-left:340px;margin-right:40px">
+
+
+
+  <!-- Header -->
+  <div class="w3-container" style="margin-top:80px" id="stockDisplay">
+    <h1 class="w3-jumbo"><b>Futurevest</b></h1>
+    <h3>Investing in the future.</h3>
+    <h1 class="w3-xxxlarge w3-text-deep-purple"><b>Stocks</b></h1>
+    <hr style="width:50px;border:5px solid purple" class="w3-round">
+  </div>
+
+  <!-- Photo grid (modal) -->
+   <!--<div id="hersheyContainer" style="height: 400px; width: 100%;"></div>-->
+
+  <div id="sherwinContainer" style="height: 400px; width: 100%;"></div>
+
+
+  <!-- Services -->
+  <div class="w3-container" id="stocksSupported" style="margin-top:75px">
+    <h1 class="w3-xxxlarge w3-text-deep-purple"><b>Stock Supported</b></h1>
+    <hr style="width:50px;border:5px solid purple" class="w3-round">
+    <p>Currently Futurevest only supports a limited number of stocks.</p>
+    <ul>
+      <li>Hershey</li>
+      <li>Sherwin Williams</li>
+      <li>Costco</li>
+      <li>Citrix Systems</li>
+    </ul>
+  </div>
+
+  <!-- About Us -->
+  <dv class="w3-container" id="aboutUs" style="margin-top:75px">
+    <h1 class="w3-xxxlarge w3-text-deep-purple"><b>About Us</b></h1>
+    <hr style="width:50px;border:5px solid purple" class="w3-round">
+    <p>Vision: The vision of the project is to create a stock market predictor to help our customer make
+      smarter investments decisions. More and more people are getting interested in investing but have
+      difficulty trusting stock market brokers. To help facilitate our customers make investments on their
+      own.</p>
+    <p>Mission: Futurevest will be an artificial intelligence algorithm that will follow the basic trend of the
+      stock market to help facilitate our customers decisions in what they invest. Futurevest will use
+      elastic net regression,supported by linear regression,  lasso regression and ridge regression.
+      The algorithm results will be accessible for view through our Futurevest website, where they are
+      able to see graphs displaying the trend of a select group of stocks and the prediction made by
+      the AI algorithm. </p>
+    <p>Intended Audience: This product is for new and experienced investors to get a basic understanding
+      of what will happen to the stock market before it happens.</p>
+    <p> Created for COMP496: Senior Project. </p>
+    <p> Created by Wesley London, Antonia Loyd and Camila Gaitan-Cardenas</p>
+  </dv>
+
+  <!-- Contact -->
+  <div class="w3-container" id="contactUs" style="margin-top:60px">
+    <h1 class="w3-xxxlarge w3-text-deep-purple"><b>Contact.</b></h1>
+    <hr style="width:50px;border:5px solid purple" class="w3-round">
+    <p>Do you want to talk to us? Fill out the form below and you'll hear from us within 48 hours.</p>
+    <form action="/action_page.php" target="_blank">
+      <div class="w3-section">
+        <label>Name</label>
+        <input class="w3-input w3-border" type="text" name="Name" required>
+      </div>
+      <div class="w3-section">
+        <label>Email</label>
+        <input class="w3-input w3-border" type="text" name="Email" required>
+      </div>
+      <div class="w3-section">
+        <label>Message</label>
+        <input class="w3-input w3-border" type="text" name="Message" required>
+      </div>
+      <button type="submit" class="w3-button w3-block w3-padding-large w3-deep-purple w3-margin-bottom">Send Message</button>
+    </form>
+  </div>
+
+<!-- End page content -->
+</div>
+
+<!-- W3.CSS Container -->
+<div class="w3-light-grey w3-container w3-padding-32" style="margin-top:75px;padding-right:58px"><p class="w3-right">Powered by CAW inc.</p></div>
+
+<script>
+// Script to open and close sidebar
+function w3_open() {
+  document.getElementById("mySidebar").style.display = "block";
+  document.getElementById("myOverlay").style.display = "block";
+}
+
+function w3_close() {
+  document.getElementById("mySidebar").style.display = "none";
+  document.getElementById("myOverlay").style.display = "none";
+}
+
+// Modal Image Gallery
+function onClick(element) {
+  document.getElementById("img01").src = element.src;
+  document.getElementById("modal01").style.display = "block";
+  var captionText = document.getElementById("caption");
+  captionText.innerHTML = element.alt;
+}
+</script>
+
+<section id="Hershey">
+  <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.stock.min.js"></script>
+<script type="text/javascript">
+window.onload = function () {
+  var dps1 = [], dps2= [];
+  var stockChart = new CanvasJS.StockChart("hersheyContainer",{
+    title:{
+      text:"Hershey"
+    },
+    subtitles: [{
+      text:"Simple Moving Average"
+    }],
+    charts: [{
+      axisY: {
+        prefix: "$"
+      },
+      legend: {
+        verticalAlign: "top",
+        cursor: "pointer",
+        itemclick: function (e) {
+          if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+            e.dataSeries.visible = false;
+          } else {
+            e.dataSeries.visible = true;
+          }
+          e.chart.render();
+        }
+      },
+      toolTip: {
+        shared: true
+      },
+      data: [{
+        type: "candlestick",
+        showInLegend: true,
+        name: "Stock Price",
+        yValueFormatString: "$#,###.00",
+        xValueType: "dateTime",
+        dataPoints : dps1
+      }],
+    }],
+    navigator: {
+       data: [{
+         dataPoints: dps2
+       }],
+      slider: {
+        minimum: new Date(2018, 03, 01),
+        maximum: new Date(2021, 05, 01)
+      }
+    }
+  });
+  $.getJSON("Hershey.json", function(data) {
+    for(var i = 0; i < data.length; i++){
+      dps1.push({x: new Date(data[i].date), y: [Number(data[i].open), Number(data[i].high), Number(data[i].low), Number(data[i].close)]});
+      dps2.push({x: new Date(data[i].date), y: Number(data[i].close)});
+    }
+    stockChart.render();
+    var sma = calculateSMA(dps1, 7);
+    stockChart.charts[0].addTo("data", { type: "line", dataPoints: sma, showInLegend: true, yValueFormatString: "$#,###.00", name: "Simple Moving Average"})
+  });
+  function calculateSMA(dps, count){
+    var avg = function(dps){
+      var sum = 0, count = 0, val;
+      for (var i = 0; i < dps.length; i++) {
+        val = dps[i].y[3]; sum += val; count++;
+      }
+      return sum / count;
+    };
+    var result = [], val;
+    count = count || 5;
+    for (var i=0; i < count; i++)
+      result.push({ x: dps[i].x , y: null});
+    for (var i=count - 1, len=dps.length; i < len; i++){
+      val = avg(dps.slice(i - count + 1, i));
+      if (isNaN(val))
+        result.push({ x: dps[i].x, y: null});
+      else
+        result.push({ x: dps[i].x, y: val});
+    }
+    return result;
+  }
+
+}
+</script>
+</section>
+
+<section id="Sherwin">
+  <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.stock.min.js"></script>
+<script type="text/javascript">
+window.onload = function () {
+  var dps1 = [], dps2= [];
+  var stockChart = new CanvasJS.StockChart("sherwinContainer",{
+    title:{
+      text:"SHW"
+    },
+    subtitles: [{
+      text:"The Sherwin-Williams Company"
+    }],
+    charts: [{
+      axisY: {
+        prefix: "$"
+      },
+      legend: {
+        verticalAlign: "top",
+        cursor: "pointer",
+        itemclick: function (e) {
+          if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+            e.dataSeries.visible = false;
+          } else {
+            e.dataSeries.visible = true;
+          }
+          e.chart.render();
+        }
+      },
+      toolTip: {
+        shared: true
+      },
+      data: [{
+        type: "candlestick",
+        showInLegend: true,
+        name: "Stock Price",
+        yValueFormatString: "$#,###.00",
+        xValueType: "dateTime",
+        dataPoints : dps1
+      }],
+    }],
+    navigator: {
+       data: [{
+         dataPoints: dps2
+       }],
+      slider: {
+        minimum: new Date(2018, 03, 01),
+        maximum: new Date(2021, 05, 01)
+      }
+    }
+  });
+  $.getJSON("Sherwin.json", function(data) {
+    for(var i = 0; i < data.length; i++){
+      dps1.push({x: new Date(data[i].date), y: [Number(data[i].open), Number(data[i].high), Number(data[i].low), Number(data[i].close)]});
+      dps2.push({x: new Date(data[i].date), y: Number(data[i].close)});
+    }
+    stockChart.render();
+    var sma = calculateSMA(dps1, 7);
+    stockChart.charts[0].addTo("data", { type: "line", dataPoints: sma, showInLegend: true, yValueFormatString: "$#,###.00", name: "Simple Moving Average"})
+  });
+  function calculateSMA(dps, count){
+    var avg = function(dps){
+      var sum = 0, count = 0, val;
+      for (var i = 0; i < dps.length; i++) {
+        val = dps[i].y[3]; sum += val; count++;
+      }
+      return sum / count;
+    };
+    var result = [], val;
+    count = count || 5;
+    for (var i=0; i < count; i++)
+      result.push({ x: dps[i].x , y: null});
+    for (var i=count - 1, len=dps.length; i < len; i++){
+      val = avg(dps.slice(i - count + 1, i));
+      if (isNaN(val))
+        result.push({ x: dps[i].x, y: null});
+      else
+        result.push({ x: dps[i].x, y: val});
+    }
+    return result;
+  }
+
+}
+</script>
+</section>
+
+</body>
+</html>
