@@ -2,84 +2,87 @@ import yfinance as yf
 import pandas
 from sklearn.linear_model import ElasticNet
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as pyplot
-
-from sklearn.datasets import make_regression
 import numpy as np
 import pandas as pd
+from datetime import date
 
 
 #reg = linear_model.LassoLars(alpha=.1)
 
 #reg.fit([[0, 0], [1, 1]], [0, 1])
 
-costco = yf.download("TSLA", "2016-01-01", "2021-03-25", auto_adjust=True)
+class Predictor:
+    def __init__(self, stockName):
+        self.stockName = stockName
 
-costco = costco[["Close"]]
-costco = costco.dropna()
-#print(costco)
+    def formatData(self, dataFrame):
+        print("TODO:")
 
-#costco.Close.plot(figsize = (8,5),color = 'b')
-#pyplot.ylabel("Stock Price")
+    def makePrediction(self):
+        currentDate = date.today()
+        stock = yf.download(self.stockName, "2000-02-01", currentDate, auto_adjust=True)
+        stock = stock[["Close","Open"]]
+        actualStock = stock
+        stock = stock.dropna()
+        #print(stock)
 
-costco["fiveAVG"] = costco["Close"].rolling(window=5).mean()
-costco["twentyAVG"] = costco["Close"].rolling(window=20).mean()
-costco["valueNextDay"] = costco["Close"].shift(-1)
+        stock["opening"] = stock["Open"]
+        #stock["twentyAVG"] = stock["Close"].rolling(window=20).mean()
+        #stock["earnings"] =
+        stock["dividend"] = yf.Ticker(self.stockName).dividends
+        stock["valueNextDay"] = stock["Close"].shift(-1)
+        pandas.set_option('display.max_rows', None)
 
-costco = costco.dropna();
-print(costco)
-X = costco[["fiveAVG","twentyAVG"]]
+        print(stock)
+        stock = stock.dropna()
+        X = stock[["opening"]]
 
-y = costco["valueNextDay"]
-costco = costco.dropna();
+        y = stock["valueNextDay"]
+        stock = stock.dropna()
 
-split_index = 0.8
+        split_index = 0.1
 
-split_index = split_index * len(costco)
-split_index = int(split_index)
+        split_index = split_index * len(stock)
+        split_index = int(split_index)
 
-#split the data by the split index so 80 percent training and 20 to test on
-x_train = X[:split_index]
-y_train = y[:split_index]
+        #split the data by the split index so 80 percent training and 20 to test on
+        x_train = X[:split_index]
+        y_train = y[:split_index]
 
-x_test = X[split_index:]
-y_test = y[split_index:]
+        x_test = X[split_index:]
+        y_test = y[split_index:]
 
-shersplit = []
+        elasticModel = ElasticNet()
+        elasticModel = elasticModel.fit(x_train, y_train)
 
-elasticModel = ElasticNet()
-elasticModel = elasticModel.fit(x_train, y_train)
+        #feature coefficients
+        fiveDayAVG = elasticModel.coef_[0]
+        #twentyDayAVG = elasticModel.coef_[1]
 
-#feature coefficients
-fiveDayAVG = elasticModel.coef_[0]
-twentyDayAVG = elasticModel.coef_[1]
+        elastic_output = elasticModel.predict(x_test)
 
-elastic_output = elasticModel.predict(x_test)
+        elastic_output = pandas.DataFrame(elastic_output, index = y_test.index, columns=["value"])
 
-elastic_output = pandas.DataFrame(elastic_output, index = y_test.index, columns=["value"])
+        #displaying the stock information
 
-#displaying the stock information
-print(yf.Ticker("MSFT").sustainability)
-elastic_output.plot()
-y_test.plot()
-pyplot.show()
+        #stock["Close"].plot()
+        stock = yf.download(self.stockName, "2016-01-01", currentDate, auto_adjust=True)
+        stock = stock[["Close"]]
+        stock = stock.dropna()
+        pyplot.plot(stock)
+        pyplot.plot(elastic_output)
+        pyplot.ylabel("Stock Price")
+        pyplot.show()
+        #print(stock.shape)
+
+        #print(accuracy_score(stock["Close"], elastic_output["value"]))
 
 
+stockTest = Predictor("COST")
+stockTest.makePrediction()
 
+print("Yay the code didn't die somewhere!")
 
-#print(fiveDayAVG)
-#print(twentyDayAVG)
-
-#note: check to see if x_test and y_test are the same size before using dataframe
-#print(x_test)
-#print(y_test)
-
-#regr = ElasticNet(random_state=0)
-#regr.fit(X, y)
-#ElasticNet(random_state=0)
-
-#
-# print(regr.coef_)
-# print(regr.intercept_)
-# print(regr.predict([[0, 0]]))
 
