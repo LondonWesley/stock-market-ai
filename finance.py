@@ -7,6 +7,7 @@ import matplotlib.pyplot as pyplot
 import numpy as np
 import pandas as pd
 from datetime import date
+import os
 
 
 #reg = linear_model.LassoLars(alpha=.1)
@@ -21,8 +22,11 @@ class Predictor:
         print("TODO:")
 
     def makePrediction(self):
+        cwd = os.getcwd()
+
         currentDate = date.today()
         stock = yf.download(self.stockName, "2000-02-01", currentDate, auto_adjust=True)
+        print(stock)
         stock = stock[["Close","Open"]]
         actualStock = stock
         stock = stock.dropna()
@@ -31,18 +35,18 @@ class Predictor:
         stock["opening"] = stock["Open"]
         #stock["twentyAVG"] = stock["Close"].rolling(window=20).mean()
         #stock["earnings"] =
-        stock["dividend"] = yf.Ticker(self.stockName).dividends
+        #stock["dividend"] = yf.Ticker(self.stockName).dividends
         stock["valueNextDay"] = stock["Close"].shift(-1)
         pandas.set_option('display.max_rows', None)
 
-        print(stock)
+        #print(stock)
         stock = stock.dropna()
         X = stock[["opening"]]
 
         y = stock["valueNextDay"]
         stock = stock.dropna()
 
-        split_index = 0.1
+        split_index = 0.8
 
         split_index = split_index * len(stock)
         split_index = int(split_index)
@@ -64,18 +68,19 @@ class Predictor:
         elastic_output = elasticModel.predict(x_test)
 
         elastic_output = pandas.DataFrame(elastic_output, index = y_test.index, columns=["value"])
-
+        elastic_output.to_csv (cwd + '/Stocks/'+ self.stockName + 'predicted.csv', index = False, header=True)
         #displaying the stock information
 
         #stock["Close"].plot()
         stock = yf.download(self.stockName, "2016-01-01", currentDate, auto_adjust=True)
         stock = stock[["Close"]]
         stock = stock.dropna()
+        stock.to_csv(cwd + '/Stocks/' + self.stockName + '.csv', index=False, header=True)
         pyplot.plot(stock)
         pyplot.plot(elastic_output)
         pyplot.ylabel("Stock Price")
         pyplot.show()
-        #print(stock.shape)
+        print(stock.shape)
 
         #print(accuracy_score(stock["Close"], elastic_output["value"]))
 
