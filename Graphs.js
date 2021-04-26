@@ -1,58 +1,11 @@
-// $(document).ready(function() {
-//   $.ajax({
-//       type: "GET",
-//       headers: {  'Access-Control-Allow-Origin': 'https://drive.google.com/uc?export=download&id=1uz2tlYfTLtRscdnZAtcndCbMilKqY8Iu' },
-//       url: "https://drive.google.com/uc?export=download&id=1uz2tlYfTLtRscdnZAtcndCbMilKqY8Iu",
-//       dataType: "text/csv",
-//       crossDomain: true,
-//       success: function(data) {processData(data);}
-//    });
-// });
-
-// const xhr = new XMLHttpRequest();
-// const url = 'https://drive.google.com/uc?export=download&id=1uz2tlYfTLtRscdnZAtcndCbMilKqY8Iu';
-
-// xhr.open('GET', url);
-// xhr.onreadystatechange = someHandler;
-// xhr.send();
 
 
-// function processData(allText) {
-//   var allTextLines = allText.split(/\r\n|\n/);
-//   var headers = allTextLines[0].split(',');
-//   var lines = [];
-
-//   for (var i=1; i<allTextLines.length; i++) {
-//       var data = allTextLines[i].split('",');
-//       if (data.length == headers.length) {
-
-//           var tarr = [];
-//           for (var j=0; j<headers.length; j++) {
-//               tarr.push(headers[j]+":"+data[j]);
-//           }
-//           lines.push(tarr);
-//       }
-//   }
-//   alert(lines);
-// }
-
-function getDataPointsFromCSV(da){
-  console.log("method call!");
-}
 $.get("stocks/COST.csv", function(data) {
-    var chart = new CanvasJS.Chart("costco", {
-        title: {
-	      text: "Chart from CSV",
-        },
-        data: [{
-	    type: "line",
-	    dataPoints: getDataPointsFromCSV(data)
-	}]
-    });
-		
-    chart.render();
+   console.log("successfully gotten file")
  
 });
+
+readTextFile();
 
 const labels = [
 "2021-03-04",
