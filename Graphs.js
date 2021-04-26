@@ -1,6 +1,6 @@
 
 
-$.get("stocks/COST.csv", function(data) {
+$.get("Stocks/COST.csv", function(data) {
    console.log("successfully gotten file")
  
 });
