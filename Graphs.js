@@ -35,10 +35,14 @@
 //   }
 //   alert(lines);
 // }
+
+function getDataPointsFromCSV(da){
+  console.log("method call!");
+}
 $.get("stocks/COST.csv", function(data) {
     var chart = new CanvasJS.Chart("costco", {
         title: {
-	    text: "Chart from CSV",
+	      text: "Chart from CSV",
         },
         data: [{
 	    type: "line",

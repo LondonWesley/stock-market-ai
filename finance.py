@@ -8,11 +8,26 @@ import numpy as np
 import pandas as pd
 from datetime import date
 import os
+import requests
+import base64
+from github import Github
+from pprint import pprint
 
 
 #reg = linear_model.LassoLars(alpha=.1)
 
 #reg.fit([[0, 0], [1, 1]], [0, 1])
+
+def updateOnGitHub(owner, csvFile, dataframe):
+    cwd = os.getcwd()
+    key = open(cwd + "/gitKey/GIT_TOKEN.txt")
+    token = key.read()
+   # query_url = f"https://api.github.com/repos/{owner}/{repo}/Stocks/" + stockCode + ".csv"
+    github = Github(token)
+    print(github.get_user().name)
+    repo = github.get_user().get_repo("stock-market-ai")
+    contents = repo.get_contents("Stocks/" + csvFile + ".csv")
+    repo.update_file(contents.path, "stock info updated " + csvFile, dataframe.to_string(), contents.sha, branch="main")
 
 class Predictor:
     def __init__(self, stockName):
@@ -75,12 +90,13 @@ class Predictor:
         stock = yf.download(self.stockName, "2016-01-01", currentDate, auto_adjust=True)
         stock = stock[["Close"]]
         stock = stock.dropna()
-        stock.to_csv(cwd + '/Stocks/' + self.stockName + '.csv', index=False, header=True)
+        updateOnGitHub("LondonWesley", self.stockName, stock)
+        #stock.to_csv(cwd + '/Stocks/' + self.stockName + '.csv', index=False, header=True)
         pyplot.plot(stock)
         pyplot.plot(elastic_output)
         pyplot.ylabel("Stock Price")
         pyplot.show()
-        print(stock.shape)
+        #print(stock.shape)
 
         #print(accuracy_score(stock["Close"], elastic_output["value"]))
 
@@ -89,5 +105,6 @@ stockTest = Predictor("COST")
 stockTest.makePrediction()
 
 print("Yay the code didn't die somewhere!")
+
 
 
