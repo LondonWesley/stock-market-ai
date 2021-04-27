@@ -38,6 +38,6 @@ app.all("*",(req,res)=>{
 })
 
 app.listen(8080,() => {
-    console.log("server is listening on 8080?")
+    console.log("server is listening on 8080")
 })
 

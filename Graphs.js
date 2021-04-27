@@ -130,3 +130,11 @@ var myChart = new Chart(
   config
 );
 
+function updateGraphs(){
+  
+  //mychart
+  myChart.update()
+  console.log("graph update call")
+}
+
+setInterval(updateGraphs, 2000);
