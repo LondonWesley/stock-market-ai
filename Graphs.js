@@ -2,10 +2,11 @@
 
 $.get("Stocks/COST.csv", function(data) {
    console.log("successfully gotten file")
+   console.log(data)
  
 });
 
-readTextFile();
+//readTextFile();
 
 const labels = [
 "2021-03-04",
