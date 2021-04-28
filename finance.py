@@ -83,7 +83,7 @@ class Predictor:
         elastic_output = elasticModel.predict(x_test)
 
         elastic_output = pandas.DataFrame(elastic_output, index = y_test.index, columns=["value"])
-        elastic_output.to_csv (cwd + '/Stocks/'+ self.stockName + 'predicted.csv', index = False, header=True)
+        elastic_output.to_csv (cwd + '/Stocks/'+ self.stockName + 'predicted.csv', index = True, header=True)
         #displaying the stock information
 
         #stock["Close"].plot()
@@ -91,17 +91,17 @@ class Predictor:
         stock = stock[["Close"]]
         stock = stock.dropna()
         #updateOnGitHub("LondonWesley", self.stockName, stock)
-        stock.to_csv(cwd + '/Stocks/' + self.stockName + '.csv', index=False, header=True)
+        stock.to_csv(cwd + '/Stocks/' + self.stockName + '.csv', index=True, header=True)
         pyplot.plot(stock)
         pyplot.plot(elastic_output)
         pyplot.ylabel("Stock Price")
-        pyplot.show()
+        #pyplot.show()
         #print(stock.shape)
 
         #print(accuracy_score(stock["Close"], elastic_output["value"]))
 
 
-stockTest = Predictor("BTC")
+stockTest = Predictor("COST")
 stockTest.makePrediction()
 
 
