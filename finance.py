@@ -90,8 +90,8 @@ class Predictor:
         stock = yf.download(self.stockName, "2016-01-01", currentDate, auto_adjust=True)
         stock = stock[["Close"]]
         stock = stock.dropna()
-        updateOnGitHub("LondonWesley", self.stockName, stock)
-        #stock.to_csv(cwd + '/Stocks/' + self.stockName + '.csv', index=False, header=True)
+        #updateOnGitHub("LondonWesley", self.stockName, stock)
+        stock.to_csv(cwd + '/Stocks/' + self.stockName + '.csv', index=False, header=True)
         pyplot.plot(stock)
         pyplot.plot(elastic_output)
         pyplot.ylabel("Stock Price")
@@ -101,8 +101,10 @@ class Predictor:
         #print(accuracy_score(stock["Close"], elastic_output["value"]))
 
 
-stockTest = Predictor("COST")
+stockTest = Predictor("BTC")
 stockTest.makePrediction()
+
+
 
 print("Yay the code didn't die somewhere!")
 
