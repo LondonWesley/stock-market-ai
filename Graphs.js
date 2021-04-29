@@ -1,5 +1,20 @@
-    
-    var stockData;
+//used to hold AJAX requests for csv files
+var stockData = {
+  COST:[],
+  HSY:[],
+  CTRX:[],
+  SHW:[],
+}
+
+
+//used to split the 2d array parsed
+    function getColumn(arr, index){
+      var newArray = [];
+      for(var i = 0; i < arr.length; i++){
+        newArray.push(arr[i][index])
+      }
+      return newArray;
+    }
     function CSVToArray( strData, strDelimiter ){
       // Check to see if the delimiter is defined. If not,
       // then default to comma.
@@ -82,109 +97,136 @@
       // Return the parsed data.
       return( arrData );
   }
-  $.get("Stocks/COST.csv", function(data) {
-    stockData = CSVToArray(data)
   
- });
-  //console.log(CSVToArray(stockData, " "))
-const labels = [
-"2021-03-04",
-"2021-03-05",
-"2021-03-08",
-"2021-03-09",
-"2021-03-10",
-"2021-03-11",
-"2021-03-12",
-"2021-03-15",
-"2021-03-16",
-"2021-03-17",
-"2021-03-18",
-"2021-03-19",
-"2021-03-22",
-"2021-03-23",
-"2021-03-24",
-"2021-03-25",
-"2021-03-26",
-"2021-03-29",
-"2021-03-30",
-"2021-03-31",
-"2021-04-01",
-"2021-04-05",
-"2021-04-06",
-"2021-04-07",
-"2021-04-08",
-"2021-04-09",
-"2021-04-12",
-"2021-04-13",
-"2021-04-14",
-"2021-04-15",
-];
-
-
-var data = {
-  labels: labels,
-  datasets: [{
-    label: 'Predicted  price',
-    backgroundColor: 'rgb(255, 99, 132)',
-    borderColor: 'rgb(255, 99, 132)',
-    data: [0,],
-  },{
-    label: 'Stock Price',
-    backgroundColor: 'rgb(25, 99, 252)',
-    borderColor: 'rgb(25, 99, 252)',
-    data: [
-    0,1
-      ],
+class StockChart {
+  constructor(code) {
+    this.codename = code;
+    this.graph;
+    this.createChart();
+    this.xData = [];
+    this.yData = [];
+    this.displayMode = 0;
   }
-]
+  createChart(){
+    var data = {
+      labels: this.xData,
+      datasets: [{
+        label: 'Predicted  price',
+        backgroundColor: 'rgb(255, 99, 132)',
+        borderColor: 'rgb(255, 99, 132)',
+        data: [0,],
+      },{
+        label: 'Stock Price',
+        backgroundColor: 'rgb(25, 99, 252)',
+        borderColor: 'rgb(25, 99, 252)',
+        data: [
+        0,1
+          ],
+      }
+    ]
+    
+    };
 
-};
+    var config = {
+      type: 'line',
+      data,
+      options: {}
+    };
 
-var config = {
-  type: 'line',
-  data,
-  options: {}
-};
+    this.graph = new Chart(
+      document.getElementById(this.codename),
+      config
+    );
+  }
+  update(){
+    
 
-var costcoChart = new Chart(
-  document.getElementById('costco'),
-  config
-);
-var hersheyChart = new Chart(
-  document.getElementById('hershey'),
-  config
-);
-var sherwinChart = new Chart(
-  document.getElementById('sherwin'),
-  config
-);
-var citrixChart = new Chart(
-  document.getElementById('citrix'),
-  config
-);
+    $.get("Stocks/COST.csv", function(data) {
+      var parsedData = CSVToArray(data);
+      yTemp = getColumn(parsedData,1)
+      xTemp = getColumn(parsedData,0)
+      xTemp.splice(0,1)
+      
+      this.yData = yTemp;
+      this.xData = xTemp;
+      console.log(this.yData)
+      console.log(this.xData)
+      //console.log(stockData)
+      //stockData.splice(0,100)
+   });
+    //mychart
+    this.yData = yTemp;
+    this.xData = xTemp;
+    console.log("actual")
+      console.log(this.yData)
+      console.log(this.xData)
+    let newDataset = {
+      label: 'updated data test',
+      backgroundColor: 'rgb(25, 99, 252)',
+      borderColor: 'rgb(25, 99, 252)',
+      data:this.yData,
+    };
+    this.graph.data.datasets.pop();
+    this.graph.data.labels = this.xData; 
+    this.graph.data.datasets.push(newDataset)
+  }
+}
+  //console.log(CSVToArray(stockData, " "))
+// const labels = [];
+
+
+// var data = {
+//   labels: labels,
+//   datasets: [{
+//     label: 'Predicted  price',
+//     backgroundColor: 'rgb(255, 99, 132)',
+//     borderColor: 'rgb(255, 99, 132)',
+//     data: [0,],
+//   },{
+//     label: 'Stock Price',
+//     backgroundColor: 'rgb(25, 99, 252)',
+//     borderColor: 'rgb(25, 99, 252)',
+//     data: [
+//     0,1
+//       ],
+//   }
+// ]
+
+// };
+
+// var config = {
+//   type: 'line',
+//   data,
+//   options: {}
+// };
+
+
+// var hersheyChart = new Chart(
+//   document.getElementById('HSY'),
+//   config
+// );
+// var sherwinChart = new Chart(
+//   document.getElementById('SHW'),
+//   config
+// );
+// var citrixChart = new Chart(
+//   document.getElementById('CTXS'),
+//   config
+// );
+
+var hersheyChart = new StockChart("HSY");
+var sherwinChart = new StockChart("SHW");
+var costcoChart = new StockChart("COST");
+var citrixChart = new StockChart("CTXS");
 
 chartList = [costcoChart,hersheyChart,citrixChart,sherwinChart];
 
 function updateGraphs(){
-  $.get("Stocks/COST.csv", function(data) {
-    stockData = CSVToArray(data)
- });
-  //mychart
-  const newDataset = {
-    label: 'updated data test',
-    backgroundColor: 'rgb(255, 99, 132)',
-    borderColor: 'rgb(255, 99, 132)',
-    data:stockData,
-  };
   for(let i = 0; i < chartList.length;i++){
-    
-    chartList[i].data.datasets.pop();
-    chartList[i].data.datasets.push(newDataset)
     chartList[i].update()
   }
-  console.log("graph update call")
-
-  
+  //console.log(stockData)
+  console.log("graph update call") 
 }
 
-setInterval(updateGraphs, 6000);
+setInterval(updateGraphs, 2000);
