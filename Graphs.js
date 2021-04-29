@@ -2,17 +2,33 @@
 var stockData = {
   COST:[],
   HSY:[],
-  CTRX:[],
+  CTXS:[],
   SHW:[],
 }
-
+// used to pull ajax request for each stock
+function pullData(codename, number){
+  let ajaxData = []
+  if(codename == "COST"){
+    ajaxData = stockData.COST[number]
+  } else if(codename == "SHW"){
+    ajaxData = stockData.SHW[number]
+  }else if(codename == "HSY"){
+    ajaxData = stockData.HSY[number]
+  }else if(codename == "CTXS"){
+    ajaxData = stockData.CTXS[number]
+  }
+  return ajaxData;
+}
 
 //used to split the 2d array parsed
     function getColumn(arr, index){
+      
       var newArray = [];
-      for(var i = 0; i < arr.length; i++){
-        newArray.push(arr[i][index])
-      }
+      if(arr.length >0){
+        for(var i = 0; i < arr.length; i++){
+          newArray.push(arr[i][index])
+       }
+    }
       return newArray;
     }
     function CSVToArray( strData, strDelimiter ){
@@ -102,19 +118,20 @@ class StockChart {
   constructor(code) {
     this.codename = code;
     this.graph;
-    this.createChart();
-    this.xData = [];
-    this.yData = [];
+    this.xData = [0,1,2];
+    this.yData = [0,1,23];
     this.displayMode = 0;
+    this.createChart()
   }
   createChart(){
+    console.log("creating charts")
     var data = {
       labels: this.xData,
       datasets: [{
         label: 'Predicted  price',
         backgroundColor: 'rgb(255, 99, 132)',
         borderColor: 'rgb(255, 99, 132)',
-        data: [0,],
+        data: [0,2],
       },{
         label: 'Stock Price',
         backgroundColor: 'rgb(25, 99, 252)',
@@ -141,23 +158,11 @@ class StockChart {
   update(){
     
 
-    $.get("Stocks/COST.csv", function(data) {
-      var parsedData = CSVToArray(data);
-      yTemp = getColumn(parsedData,1)
-      xTemp = getColumn(parsedData,0)
-      xTemp.splice(0,1)
-      
-      this.yData = yTemp;
-      this.xData = xTemp;
-      console.log(this.yData)
-      console.log(this.xData)
-      //console.log(stockData)
-      //stockData.splice(0,100)
-   });
     //mychart
-    this.yData = yTemp;
-    this.xData = xTemp;
-    console.log("actual")
+    let ajaxData = pullData(this.codename, 0)
+    this.yData = getColumn(ajaxData,1);
+    this.xData = getColumn(ajaxData,0);
+    console.log("actual:" + this.codename)
       console.log(this.yData)
       console.log(this.xData)
     let newDataset = {
@@ -166,9 +171,11 @@ class StockChart {
       borderColor: 'rgb(25, 99, 252)',
       data:this.yData,
     };
+
     this.graph.data.datasets.pop();
     this.graph.data.labels = this.xData; 
     this.graph.data.datasets.push(newDataset)
+    this.graph.update()
   }
 }
   //console.log(CSVToArray(stockData, " "))
@@ -222,6 +229,23 @@ var citrixChart = new StockChart("CTXS");
 chartList = [costcoChart,hersheyChart,citrixChart,sherwinChart];
 
 function updateGraphs(){
+  $.get("Stocks/COST.csv", function(data) {
+    var parsedData = CSVToArray(data);
+    stockData.COST[0] = parsedData;
+ });
+ $.get("Stocks/HSY.csv", function(data) {
+  var parsedData = CSVToArray(data);
+  stockData.HSY[0] = parsedData;
+});
+$.get("Stocks/SHW.csv", function(data) {
+  var parsedData = CSVToArray(data);
+  stockData.SHW[0] = parsedData;
+});
+$.get("Stocks/CTXS.csv", function(data) {
+  var parsedData = CSVToArray(data);
+  stockData.CTXS[0] = parsedData;
+});
+ 
   for(let i = 0; i < chartList.length;i++){
     chartList[i].update()
   }
@@ -229,4 +253,4 @@ function updateGraphs(){
   console.log("graph update call") 
 }
 
-setInterval(updateGraphs, 2000);
+setInterval(updateGraphs, 3000);
