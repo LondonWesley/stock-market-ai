@@ -1,39 +1,32 @@
-import numpy as np
+import time
+from finance import Predictor
 
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
 
-regressor = LinearRegression()
+#run this to start the AI
 
-nof = X_train.shape[1]
-print(nof)
-mse = np.empty(2 ** nof - 1)
-ind = np.empty(nof)
-l = list()
-bl = list()
-bitem = list()
-k = 0
+def runPredictions():
+    print("updating predictions")
+    costco = Predictor("COST")
+    sherwin = Predictor("SHW")
+    citrix = Predictor("CTXS")
+    hershey = Predictor("HSY")
 
-# remaining = set(X_train.columns)
-from itertools import combinations
+    sherwin.makePrediction()
+    hershey.makePrediction()
+    costco.makePrediction()
+    citrix.makePrediction()
 
-remaining = set(X_train.columns)
-for j in range(1, len(remaining) + 1):
-    comb = combinations(remaining, j)
-    tempbest = 5000
+    print("Done!")
 
-    for i in list(comb):
-        lsti = list(i)
-        print(list(i))
-        l.append(lsti)
-        # X_train.iloc[:,i]
-        regressor.fit(X_train.loc[:, lsti], y_train)
-        y_exp = regressor.predict(X_train.loc[:, list(i)])
-        mse[k] = mean_squared_error(y_train, y_exp) * y_train.shape[0] / (y_train.shape[0] - len(list(i)))
-        if mse[k] < tempbest:
-            bitem = lsti
-            tempbest = mse[k]
-        k = k + 1
 
-    bl.append(bitem)
+
+def main():
+    print("Successfully ran with no errors")
+    while True:
+        runPredictions()
+        time.sleep(30)
+
+
+
+if __name__ == "__main__":
+    main()

@@ -1,40 +1,54 @@
 import yfinance as yf
 import pandas
 from sklearn.linear_model import ElasticNet
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as pyplot
-import numpy as np
-import pandas as pd
 from datetime import date
 import os
-import requests
-import base64
-from github import Github
-from pprint import pprint
+import math
+
 
 
 #reg = linear_model.LassoLars(alpha=.1)
 
 #reg.fit([[0, 0], [1, 1]], [0, 1])
+#
+# def updateOnGitHub(owner, csvFile, dataframe):
+#     cwd = os.getcwd()
+#     key = open(cwd + "/gitKey/GIT_TOKEN.txt")
+#     token = key.read()
+#    # query_url = f"https://api.github.com/repos/{owner}/{repo}/Stocks/" + stockCode + ".csv"
+#     github = Github(token)
+#     print(github.get_user().name)
+#     repo = github.get_user().get_repo("stock-market-ai")
+#     contents = repo.get_contents("Stocks/" + csvFile + ".csv")
+#     repo.update_file(contents.path, "stock info updated " + csvFile, dataframe.to_string(), contents.sha, branch="main")
 
-def updateOnGitHub(owner, csvFile, dataframe):
-    cwd = os.getcwd()
-    key = open(cwd + "/gitKey/GIT_TOKEN.txt")
-    token = key.read()
-   # query_url = f"https://api.github.com/repos/{owner}/{repo}/Stocks/" + stockCode + ".csv"
-    github = Github(token)
-    print(github.get_user().name)
-    repo = github.get_user().get_repo("stock-market-ai")
-    contents = repo.get_contents("Stocks/" + csvFile + ".csv")
-    repo.update_file(contents.path, "stock info updated " + csvFile, dataframe.to_string(), contents.sha, branch="main")
+def formatDataFrame(df):
+    dividend = -1
+    firstDividend = dividend;
+    #dz = pandas.DataFrame()
+    #first go through to fill in missing dividends
+    for index, row in df.iterrows():
+        if math.isnan(row[1]):
+            if dividend > -1:
+                row[1] = dividend;
+        elif not (dividend == row[1]):
+                if firstDividend == -1:
+                   firstDividend = row[1]
+                dividend = row[1]
+
+
+    #second pass to fill in first if empty
+    for index, row in df.iterrows():
+        if math.isnan(row[1]):
+            row[1] = firstDividend
+        print(row[1])
 
 class Predictor:
     def __init__(self, stockName):
         self.stockName = stockName
 
-    def formatData(self, dataFrame):
-        print("TODO:")
+
 
     def makePrediction(self):
         cwd = os.getcwd()
@@ -45,23 +59,22 @@ class Predictor:
         stock = stock[["Close","Open"]]
         actualStock = stock
         stock = stock.dropna()
-        #print(stock)
+        print(stock)
 
         stock["opening"] = stock["Open"]
-        #stock["twentyAVG"] = stock["Close"].rolling(window=20).mean()
-        #stock["earnings"] =
-        #stock["dividend"] = yf.Ticker(self.stockName).dividends
+        stock["twentyAVG"] = stock["Close"].rolling(window=20).mean()
+        stock["dividend"] = yf.Ticker(self.stockName).dividends
         stock["valueNextDay"] = stock["Close"].shift(-1)
         pandas.set_option('display.max_rows', None)
 
         #print(stock)
         stock = stock.dropna()
-        X = stock[["opening"]]
+        X = stock[["opening","dividend"]]
 
         y = stock["valueNextDay"]
         stock = stock.dropna()
 
-        split_index = 0.8
+        split_index = 0.2
 
         split_index = split_index * len(stock)
         split_index = int(split_index)
@@ -80,33 +93,33 @@ class Predictor:
         fiveDayAVG = elasticModel.coef_[0]
         #twentyDayAVG = elasticModel.coef_[1]
 
-        elastic_output = elasticModel.predict(x_test)
+        #elastic_output = elasticModel.predict(x_test)
+        stock = yf.download(self.stockName, "2019-01-01", currentDate, auto_adjust=True)
+        stock["dividend"] = yf.Ticker(self.stockName).dividends
+        stockOpening = stock[["Open","dividend"]]
+        formatDataFrame(stockOpening)
+        stockClosing = stock[["Close"]]
+        stockClosing = stockClosing.dropna()
+        stockOpening = stockOpening.dropna()
+        stockOpen = stockOpening
+        elastic_output = elasticModel.predict(stockOpening)
+        elastic_output = pandas.DataFrame(elastic_output, index = stockOpening.index, columns=["value"])
 
-        elastic_output = pandas.DataFrame(elastic_output, index = y_test.index, columns=["value"])
         elastic_output.to_csv (cwd + '/Stocks/'+ self.stockName + 'predicted.csv', index = True, header=True)
         #displaying the stock information
 
         #stock["Close"].plot()
-        stock = yf.download(self.stockName, "2016-01-01", currentDate, auto_adjust=True)
-        stock = stock[["Close"]]
-        stock = stock.dropna()
+
+
+
         #updateOnGitHub("LondonWesley", self.stockName, stock)
-        stock.to_csv(cwd + '/Stocks/' + self.stockName + '.csv', index=True, header=True)
-        pyplot.plot(stock)
-        pyplot.plot(elastic_output)
-        pyplot.ylabel("Stock Price")
+        stockClosing.to_csv(cwd + '/Stocks/' + self.stockName + '.csv', index=True, header=True)
+        #pyplot.plot(stock)
+        #pyplot.plot(elastic_output)
+        #pyplot.ylabel("Stock Price")
         #pyplot.show()
         #print(stock.shape)
 
-        #print(accuracy_score(stock["Close"], elastic_output["value"]))
-
-
-stockTest = Predictor("COST")
-stockTest.makePrediction()
-
-
-
-print("Yay the code didn't die somewhere!")
-
+        stock = yf.download(self.stockName, period="1d", auto_adjust=True)
 
 

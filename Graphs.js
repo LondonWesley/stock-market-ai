@@ -5,6 +5,9 @@ var stockData = {
   CTXS:[],
   SHW:[],
 }
+
+var viewMode = 0
+Chart.defaults.elements.point.radius = 0;
 // used to pull ajax request for each stock
 function pullData(codename, number){
   let ajaxData = []
@@ -119,12 +122,11 @@ class StockChart {
     this.codename = code;
     this.graph;
     this.xData = [0,1,2];
-    this.yData = [0,1,23];
+    this.yData = [0,1,2];
     this.displayMode = 0;
     this.createChart()
   }
   createChart(){
-    console.log("creating charts")
     var data = {
       labels: this.xData,
       datasets: [{
@@ -159,67 +161,46 @@ class StockChart {
     
 
     //mychart
-    let ajaxData = pullData(this.codename, 0)
-    this.yData = getColumn(ajaxData,1);
-    this.xData = getColumn(ajaxData,0);
-    console.log("actual:" + this.codename)
-      console.log(this.yData)
-      console.log(this.xData)
+    let ajaxStockData = pullData(this.codename, 0)
+    let ajaxPredictionData = pullData(this.codename, 1)
+    this.yData = getColumn(ajaxStockData,1);
+    this.xData = getColumn(ajaxStockData,0);
+    let predictedData = getColumn(ajaxPredictionData,1);
+    // console.log("actual:" + this.codename)
+    //   console.log(this.yData)
+    //   console.log(this.xData)
+    this.yData.splice(0,1)
+    predictedData.splice(0,1)
+    if(viewMode == 1){
+      this.xData.splice(0,this.xData.length - 2);
+    }
+    this.graph.data.labels = this.xData; 
+
     let newDataset = {
-      label: 'updated data test',
-      backgroundColor: 'rgb(25, 99, 252)',
-      borderColor: 'rgb(25, 99, 252)',
+      label: 'stock price',
+      backgroundColor: 'rgb(216, 48, 145)',
+      borderColor: 'rgb(216, 48, 145)',
       data:this.yData,
     };
 
+    let prediction = {
+      label: 'predicted price',
+      backgroundColor: 'rgb(181, 131, 248)',
+      borderColor: 'rgb(181, 131, 248)',
+      data:predictedData,
+    };
+
+    
+
+
     this.graph.data.datasets.pop();
-    this.graph.data.labels = this.xData; 
+    this.graph.data.datasets.pop();
     this.graph.data.datasets.push(newDataset)
+    this.graph.data.datasets.push(prediction)
+
     this.graph.update()
   }
 }
-  //console.log(CSVToArray(stockData, " "))
-// const labels = [];
-
-
-// var data = {
-//   labels: labels,
-//   datasets: [{
-//     label: 'Predicted  price',
-//     backgroundColor: 'rgb(255, 99, 132)',
-//     borderColor: 'rgb(255, 99, 132)',
-//     data: [0,],
-//   },{
-//     label: 'Stock Price',
-//     backgroundColor: 'rgb(25, 99, 252)',
-//     borderColor: 'rgb(25, 99, 252)',
-//     data: [
-//     0,1
-//       ],
-//   }
-// ]
-
-// };
-
-// var config = {
-//   type: 'line',
-//   data,
-//   options: {}
-// };
-
-
-// var hersheyChart = new Chart(
-//   document.getElementById('HSY'),
-//   config
-// );
-// var sherwinChart = new Chart(
-//   document.getElementById('SHW'),
-//   config
-// );
-// var citrixChart = new Chart(
-//   document.getElementById('CTXS'),
-//   config
-// );
 
 var hersheyChart = new StockChart("HSY");
 var sherwinChart = new StockChart("SHW");
@@ -228,6 +209,18 @@ var citrixChart = new StockChart("CTXS");
 
 chartList = [costcoChart,hersheyChart,citrixChart,sherwinChart];
 
+function toggleView(){
+  button = document.getElementById("displayButton");
+
+  if(viewMode == 0){
+    viewMode = 1;
+    button.innerText = "ViewMode: Current Prediction"
+  }else {
+    viewMode = 0;
+    button.innerText = "ViewMode: Prediction History"
+  }
+
+}
 function updateGraphs(){
   $.get("Stocks/COST.csv", function(data) {
     var parsedData = CSVToArray(data);
@@ -245,12 +238,28 @@ $.get("Stocks/CTXS.csv", function(data) {
   var parsedData = CSVToArray(data);
   stockData.CTXS[0] = parsedData;
 });
+$.get("Stocks/COSTpredicted.csv", function(data) {
+  var parsedData = CSVToArray(data);
+  stockData.COST[1] = parsedData;
+});
+$.get("Stocks/HSYpredicted.csv", function(data) {
+var parsedData = CSVToArray(data);
+stockData.HSY[1] = parsedData;
+});
+$.get("Stocks/SHWpredicted.csv", function(data) {
+var parsedData = CSVToArray(data);
+stockData.SHW[1] = parsedData;
+});
+$.get("Stocks/CTXSpredicted.csv", function(data) {
+var parsedData = CSVToArray(data);
+stockData.CTXS[1] = parsedData;
+});
  
   for(let i = 0; i < chartList.length;i++){
     chartList[i].update()
   }
   //console.log(stockData)
-  console.log("graph update call") 
+  //console.log("graph update call") 
 }
 
 setInterval(updateGraphs, 3000);
